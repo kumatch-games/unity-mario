@@ -13,10 +13,16 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private float JumpPower;
 
+    private float JumpTime;
+
+    private bool IsLand;
+
+    private bool IsJumping;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        JumpTime = 0;
     }
 
     // Update is called once per frame
@@ -31,9 +37,45 @@ public class PlayerInput : MonoBehaviour
             Player.AddForce(Vector2.right * Speed);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (IsLand || IsJumping)
         {
-            Player.AddForce(Vector2.up * JumpPower);
+            if (Input.GetKey(KeyCode.Space))
+            {
+                JumpTime += Time.deltaTime;
+
+                if (JumpTime <= 0.3f)
+                {
+                    Player.AddForce(Vector2.up * JumpPower);
+                }
+
+                IsJumping = true;
+            }
+            else
+            {
+                IsJumping = false;
+                JumpTime = 0;
+            }
+        }
+        else
+        {
+            IsJumping = false;
+            JumpTime = 0f;
+        }
+
+        IsLand = false;
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        foreach(var contact in collision.contacts)
+        {
+            var normal = contact.normal;
+            var ip = Vector2.Dot(normal, Vector2.up);
+
+            if (ip > 0.9f)
+            {
+                IsLand = true;
+            }
         }
     }
 }
